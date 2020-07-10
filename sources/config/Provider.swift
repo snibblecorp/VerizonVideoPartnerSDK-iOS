@@ -23,7 +23,11 @@ extension VVPSDK {
         public var session = URLSession.init(configuration: .ephemeral)
         
         public static let `default` = Provider()
-        
+        public static func manual(with advertisementID: String) -> Provider{
+            var provider = Provider()
+            provider.context.client.advertisementID = advertisementID
+            return provider
+        }
         public func getConfiguration() -> Future<Result<Configuration>> {
             do {
                 var request = URLRequest(url: url)
