@@ -39,7 +39,7 @@ DESC
   
   s.dependency 'VideoRenderer', '1.28'
   s.dependency 'PlayerCore', '1.1.3'
-  s.ios.dependency 'PlayerControls', '2.0.3'
+  s.ios.dependency 'PlayerControls', :git => 'https://github.com/snibblecorp/VerizonVideoPartnerSDK-controls-ios.git', :commit => '7ff24ca184a176ca1bae7da3942137f062bbb241'
 
   s.ios.deployment_target  = '9.0'
   s.tvos.deployment_target = '9.0'
