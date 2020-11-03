@@ -18,6 +18,7 @@ install:
 matrix:
   include:
   - os: osx
+
     
     osx_image: xcode11
     osx_image: xcode11.1
@@ -27,7 +28,7 @@ matrix:
 
  update macos image to latest to test sourcery+homebrew build error
 
-    
+  
     before_script:
     - ". ./fastlane/travis-scripts/pre-xcode10.sh"
     script:
