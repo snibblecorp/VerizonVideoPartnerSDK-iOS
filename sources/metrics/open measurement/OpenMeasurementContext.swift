@@ -31,7 +31,10 @@ enum OpenMeasurement {
     
     static func createOpenMeasurementContext(input: Input) throws -> Output {
         if OMIDVerizonmediaSDK.shared.isActive == false {
-            OMIDVerizonmediaSDK.shared.activate()
+            guard OMIDVerizonmediaSDK.isCompatible(withOMIDAPIVersion: OMIDSDKAPIVersionString) else {
+                throw Errors.sdkVersionIsNotCompatible
+            }
+            try OMIDVerizonmediaSDK.shared.activate(withOMIDAPIVersion: OMIDSDKAPIVersionString)
             
             guard OMIDVerizonmediaSDK.shared.isActive else {
                 throw Errors.failedToActivateSDK
@@ -54,44 +57,43 @@ enum OpenMeasurement {
         let context = try OMIDVerizonmediaAdSessionContext(partner: partner,
                                                            script: input.jsServiceScript,
                                                            resources: verificationResources,
-                                                           contentUrl: nil,
                                                            customReferenceIdentifier: nil)
         
-        let configuration = try OMIDVerizonmediaAdSessionConfiguration(creativeType:.video,
-                                                                       impressionType: .beginToRender,
-                                                                       impressionOwner: .nativeOwner,
-                                                                       mediaEventsOwner: .nativeOwner,
-                                                                       isolateVerificationScripts: true);
+        let configuration = try OMIDVerizonmediaAdSessionConfiguration(impressionOwner: .nativeOwner,
+                                                                       videoEventsOwner: .nativeOwner,
+                                                                       isolateVerificationScripts: false)
         
         let adSession = try OMIDVerizonmediaAdSession(configuration: configuration, adSessionContext: context)
         
         let omidAdEvents = try OMIDVerizonmediaAdEvents(adSession: adSession)
-        let omidMediaEvents = try OMIDVerizonmediaMediaEvents(adSession: adSession)
+        let omidVideoEvents = try OMIDVerizonmediaVideoEvents(adSession: adSession)
         
         let adEvents = PlayerCore.OpenMeasurement.AdEvents(
             impressionOccurred: { try? omidAdEvents.impressionOccurred() }
         )
         let videoEvents = PlayerCore.OpenMeasurement.VideoEvents(
             loaded: { (position, autoplay) in
-                let _: OMIDPosition = {
+                let position: OMIDPosition = {
                     switch position {
                     case .preroll: return .preroll
                     case .midroll: return .midroll
                     }
-                }()},
-            bufferFinish: omidMediaEvents.bufferFinish,
-            bufferStart: omidMediaEvents.bufferStart,
+                }()
+                let properties = OMIDVerizonmediaVASTProperties(autoPlay: autoplay, position: position)
+                omidVideoEvents.loaded(with: properties)},
+            bufferFinish: omidVideoEvents.bufferFinish,
+            bufferStart: omidVideoEvents.bufferStart,
             start: { (duration, volume) in
-                omidMediaEvents.start(withDuration: duration, mediaPlayerVolume: volume)},
-            firstQuartile: omidMediaEvents.firstQuartile,
-            midpoint: omidMediaEvents.midpoint,
-            thirdQuartile: omidMediaEvents.thirdQuartile,
-            complete: omidMediaEvents.complete,
-            resume: omidMediaEvents.resume,
-            pause: omidMediaEvents.pause,
-            click: { omidMediaEvents.adUserInteraction(withType: .click) },
-            volumeChange: omidMediaEvents.volumeChange,
-            skip: omidMediaEvents.skipped)
+                omidVideoEvents.start(withDuration: duration, videoPlayerVolume: volume)},
+            firstQuartile: omidVideoEvents.firstQuartile,
+            midpoint: omidVideoEvents.midpoint,
+            thirdQuartile: omidVideoEvents.thirdQuartile,
+            complete: omidVideoEvents.complete,
+            resume: omidVideoEvents.resume,
+            pause: omidVideoEvents.pause,
+            click: { omidVideoEvents.adUserInteraction(withType: .click) },
+            volumeChange: omidVideoEvents.volumeChange,
+            skip: omidVideoEvents.skipped)
         
         return Output(adSession: adSession, adEvents: adEvents, videoEvents: videoEvents)
     }
