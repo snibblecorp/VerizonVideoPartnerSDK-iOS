@@ -61,7 +61,7 @@ enum OpenMeasurement {
                                                                        impressionType: .beginToRender,
                                                                        impressionOwner: .nativeOwner,
                                                                        mediaEventsOwner: .nativeOwner,
-                                                                       isolateVerificationScripts: false);
+                                                                       isolateVerificationScripts: true);
         
         let adSession = try OMIDVerizonmediaAdSession(configuration: configuration, adSessionContext: context)
         
